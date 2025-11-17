@@ -99,7 +99,7 @@ export class BotService {
       `╚══════════════════════╝\n\n` +
       `Assalomu alaykum, <b>${firstName}</b>! 👋\n\n` +
       `✍️ <b>Ma'nosini bilmoqchi bo'lgan ismni kiriting</b>\n\n` +
-      `📖 <i>Misol:</i> <code>Muhammad</code>\n` +
+      `📖 <b>Misol:</b> <code>Muhammad</code>\n` +
       `<b>Muhammad </b> (Arabcha) - Maqtovga sazovor. ` +
       `(Arabcha) - Maqtovga, olqishlarga sazovor. Payg‘ambarimiz Muhammad sollallohu alayhi vasallamning (Muhammad ibn Abdulloh, 570 yoki 571 Makka - 632, Madina) muborak ismlari..\n\n` +
       `━━━━━━━━━━━━━━━━━━━━\n\n` +

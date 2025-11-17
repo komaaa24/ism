@@ -1,5 +1,6 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { HttpModule } from '@nestjs/axios';
 import { BotService } from './bot.service';
 import {
   UserEntity,
@@ -14,6 +15,7 @@ import { NameInsightsService } from './services/name-insights.service';
 import { UserFavoritesService } from './services/user-favorites.service';
 import { UserPersonaService } from './services/user-persona.service';
 import { AdminService } from './services/admin.service';
+import { NameGeneratorApiService } from './services/name-generator-api.service';
 
 @Module({
   imports: [
@@ -24,6 +26,7 @@ import { AdminService } from './services/admin.service';
       UserPersonaProfileEntity,
       TransactionEntity,
     ]),
+    HttpModule,
   ],
   providers: [
     BotCoreService,
@@ -33,6 +36,7 @@ import { AdminService } from './services/admin.service';
     UserFavoritesService,
     UserPersonaService,
     AdminService,
+    NameGeneratorApiService,
   ],
   exports: [BotService],
 })

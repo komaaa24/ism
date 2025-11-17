@@ -1,5 +1,6 @@
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { NameMeaningService } from './name-meaning.service';
+import { NameGeneratorApiService, GeneratedName } from './name-generator-api.service';
 
 export type NameGender = 'boy' | 'girl' | 'unisex';
 export type TrendPeriod = 'monthly' | 'yearly';
@@ -321,7 +322,8 @@ const COMMUNITY_POLLS = [
 export class NameInsightsService {
   constructor(
     @Inject(forwardRef(() => NameMeaningService))
-    private readonly meaningService: NameMeaningService
+    private readonly meaningService: NameMeaningService,
+    private readonly nameGeneratorApi: NameGeneratorApiService,
   ) { }
 
   getCategoryDescriptors(): typeof CATEGORY_DESCRIPTORS {
@@ -531,7 +533,7 @@ export class NameInsightsService {
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // PHASE 1: DNA EXTRACTION - Ota-ona ismlarining tahlili
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    
+
     interface ParentDNA {
       name: string;
       origin?: string;
@@ -568,7 +570,7 @@ export class NameInsightsService {
 
       // Phoneme patterns (consonant-vowel patterns)
       const vowels = new Set(['a', 'e', 'i', 'o', 'u']);
-      const phonemes = normalized.split('').map(char => 
+      const phonemes = normalized.split('').map(char =>
         vowels.has(char) ? 'V' : 'C'
       );
       const phonemePattern = phonemes.join('');
@@ -628,7 +630,7 @@ export class NameInsightsService {
       const semanticMatchMother = motherDNA?.meanings.filter(m =>
         childMeaningWords.some(cm => cm.includes(m) || m.includes(cm))
       ).length || 0;
-      
+
       totalScore += (semanticMatchFather + semanticMatchMother) * 150;
 
       // ═══════════════════════════════════════════════════
@@ -637,7 +639,7 @@ export class NameInsightsService {
       // ═══════════════════════════════════════════════════
       const focusMatchFather = fatherDNA?.focusValues.filter(f => childFocus.includes(f)).length || 0;
       const focusMatchMother = motherDNA?.focusValues.filter(f => childFocus.includes(f)).length || 0;
-      
+
       totalScore += (focusMatchFather + focusMatchMother) * 120;
 
       // ═══════════════════════════════════════════════════
@@ -715,11 +717,11 @@ export class NameInsightsService {
       // Weight: 300 points (SUPER BONUS)
       // ═══════════════════════════════════════════════════
       if (fatherDNA && motherDNA) {
-        const hasFatherGenes = childLower.includes(fatherDNA.name.substring(0, 2)) || 
-                               Array.from(fatherDNA.letters.keys()).filter(l => childLetters.has(l)).length >= 3;
-        const hasMotherGenes = childLower.includes(motherDNA.name.substring(0, 2)) || 
-                               Array.from(motherDNA.letters.keys()).filter(l => childLetters.has(l)).length >= 3;
-        
+        const hasFatherGenes = childLower.includes(fatherDNA.name.substring(0, 2)) ||
+          Array.from(fatherDNA.letters.keys()).filter(l => childLetters.has(l)).length >= 3;
+        const hasMotherGenes = childLower.includes(motherDNA.name.substring(0, 2)) ||
+          Array.from(motherDNA.letters.keys()).filter(l => childLetters.has(l)).length >= 3;
+
         if (hasFatherGenes && hasMotherGenes) {
           totalScore += 300; // 🏆 Perfect genetic blend!
         }
@@ -731,7 +733,7 @@ export class NameInsightsService {
       // ═══════════════════════════════════════════════════
       const vowels = new Set(['a', 'e', 'i', 'o', 'u']);
       const childPhoneme = childLower.split('').map(c => vowels.has(c) ? 'V' : 'C').join('');
-      
+
       [fatherDNA, motherDNA].forEach(parent => {
         if (!parent) return;
         parent.phonemes.forEach(pattern => {
@@ -772,7 +774,7 @@ export class NameInsightsService {
             record.origin,
             record.focusValues
           );
-          
+
           // Genetic score dominates when parents are provided
           score = geneticScore + (score * 0.3); // 70% genetic, 30% trend
         }
@@ -791,6 +793,34 @@ export class NameInsightsService {
       .slice(0, 5);
 
     return { persona, suggestions };
+  }
+
+  /**
+   * 🚀 NEW: API-POWERED NAME GENERATION
+   * Uses parent names to generate creative suggestions via API
+   */
+  async buildApiGeneratedRecommendations(
+    fatherName: string,
+    motherName: string,
+    targetGender: TrendGender,
+  ): Promise<NameSuggestion[]> {
+    const gender = targetGender === 'all' ? 'girl' : targetGender;
+    
+    const generatedNames = await this.nameGeneratorApi.generateNamesByPattern(
+      fatherName,
+      motherName,
+      gender,
+    );
+
+    return generatedNames.map((gen) => ({
+      name: gen.name,
+      gender: gen.gender as NameGender,
+      slug: gen.name.toLowerCase(),
+      origin: gen.origin,
+      meaning: gen.meaning,
+      focusValues: ['generatsiya', 'shaxsiy'],
+      trendIndex: gen.confidence,
+    }));
   }
 
   getCommunityPoll(): { question: string; options: string[] } {

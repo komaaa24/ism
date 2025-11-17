@@ -79,7 +79,7 @@ export class BotService {
     ctx.session.flow = undefined;
     ctx.session.quizAnswers = undefined;
     ctx.session.quizTags = undefined;
-    
+
     // Senior-level welcome message with reply keyboard
     const telegramId = ctx.from?.id;
     let hasAccess = false;
@@ -91,9 +91,9 @@ export class BotService {
     }
 
     const firstName = ctx.from?.first_name || 'do\'st';
-    
+
     // 🎨 Beautiful welcome message
-    const welcomeMessage = 
+    const welcomeMessage =
       `╔══════════════════════╗\n` +
       `   👑 ISMLAR MANOSI    \n` +
       `╚══════════════════════╝\n\n` +
@@ -103,7 +103,7 @@ export class BotService {
       `🎯 <b>Shaxsiy Tavsiya</b> - Sizga mos ismlar\n` +
       `📊 <b>Trendlar</b> - Eng mashhur ismlar\n` +
       `⭐ <b>Sevimlilar</b> - Yoqqan ismlarni saqlash\n\n` +
-      (hasAccess 
+      (hasAccess
         ? `✅ <b>Status:</b> VIP foydalanuvchi\n♾️ Barcha imkoniyatlar ochiq!\n\n`
         : `💡 <b>Status:</b> Oddiy foydalanuvchi\n💳 Bir martalik to'lov - 5,555 so'm\n♾️ Umrbod premium!\n\n`) +
       `📱 <b>Qanday ishlatish:</b>\n` +
@@ -688,11 +688,51 @@ export class BotService {
     const targetGender = (flow.payload.targetGender as TrendGender | undefined) ?? 'all';
     const focusValues = (flow.payload.focusValues as string[] | undefined) ?? [];
     const parentNames = (flow.payload.parentNames as string[] | undefined) ?? [];
-    const result = this.insightsService.buildPersonalizedRecommendations(
-      targetGender,
-      focusValues,
-      parentNames
-    );
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // 🚀 NEW: API-POWERED GENERATION
+    // If parent names provided, use advanced API generation
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    
+    let suggestions: any[] = [];
+    let personaInfo = { code: 'default', label: 'Shaxsiy Profil', summary: 'API orqali yaratilgan' };
+
+    if (parentNames && parentNames.length >= 2) {
+      // Use API-based generation
+      await ctx.replyWithChatAction('typing');
+      
+      try {
+        suggestions = await this.insightsService.buildApiGeneratedRecommendations(
+          parentNames[0],
+          parentNames[1],
+          targetGender,
+        );
+        
+        personaInfo = {
+          code: 'api_generated',
+          label: '🧬 API Generatsiya',
+          summary: `Ota: ${parentNames[0]}, Ona: ${parentNames[1]} asosida yaratilgan`,
+        };
+      } catch (error) {
+        // Fallback to genetic algorithm
+        const result = this.insightsService.buildPersonalizedRecommendations(
+          targetGender,
+          focusValues,
+          parentNames
+        );
+        suggestions = result.suggestions;
+        personaInfo = result.persona;
+      }
+    } else {
+      // Use existing genetic algorithm
+      const result = this.insightsService.buildPersonalizedRecommendations(
+        targetGender,
+        focusValues,
+        parentNames
+      );
+      suggestions = result.suggestions;
+      personaInfo = result.persona;
+    }
 
     const personaTarget: TargetGender = targetGender === 'boy' || targetGender === 'girl' ? targetGender : 'unknown';
     await this.personaService.upsertProfile(user.id, {
@@ -701,21 +741,21 @@ export class BotService {
       familyName: flow.payload.familyName as string | undefined,
       parentNames: flow.payload.parentNames as string[] | undefined,
       focusValues,
-      personaType: result.persona.code,
+      personaType: personaInfo.code,
     });
 
-    const lines = result.suggestions.map((item, index) => {
+    const lines = suggestions.map((item, index) => {
       const emoji = item.gender === 'girl' ? '👧' : '👦';
       return `${index + 1}. ${emoji} <b>${item.name}</b> — ${item.meaning}`;
     });
 
     const keyboard = new InlineKeyboard();
-    result.suggestions.forEach((item) => keyboard.row().text(item.name, `name:detail:${item.slug}`));
+    suggestions.forEach((item) => keyboard.row().text(item.name, `name:detail:${item.slug}`));
     keyboard.row().text('🏠 Menyu', 'main:menu');
 
     await this.safeEditOrReply(
       ctx,
-      `🎯 Profil: <b>${result.persona.label}</b>\n${result.persona.summary}\n\n${lines.join('\n')}`,
+      `🎯 Profil: <b>${personaInfo.label}</b>\n${personaInfo.summary}\n\n${lines.join('\n')}`,
       keyboard,
     );
 

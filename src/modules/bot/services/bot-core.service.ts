@@ -35,6 +35,11 @@ export class BotCoreService implements OnModuleInit, OnModuleDestroy {
   }
 
   public async start(): Promise<void> {
+    // Set bot commands menu
+    await this.bot.api.setMyCommands([
+      { command: 'start', description: "🏠 Asosiy menyu" },
+    ]);
+
     await this.bot.start({
       onStart: () => {
         logger.info('Bot started');

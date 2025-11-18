@@ -625,9 +625,9 @@ export class BotService {
 
     const message =
       introMessage +
-      "🌟 <b>Premium:</b> 1 000 so'm\n" +
-      "♾️ <b>Muddati:</b> Butun umrga obuna bo'lasiz\n\n" +
-      "Quyidagi to'lov usulini tanlang:";
+      "🌟 <b>Premium:</b> 1 000 so'm bir marta to'lov qilasiz \n" +
+      "♾️ <b>Muddati:</b> 10 yil muddatga obuna bo'lasiz\n\n" +
+     "Quyidagi to'lov usulini tanlang:";
 
     await ctx.reply(message, { reply_markup: keyboard, parse_mode: 'HTML' });
     return false;

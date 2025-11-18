@@ -517,13 +517,34 @@ export class BotService {
   }
 
   private async showNameDetail(ctx: BotContext, slug: string): Promise<void> {
-    const record = this.insightsService.findRecordByName(slug);
+    // 🚀 API dan to'liq ma'lumot olish
+    await ctx.replyWithChatAction('typing');
+
+    const { record, meaning, error } = await this.insightsService.getRichNameMeaning(slug);
+
+    if (!meaning && error) {
+      await ctx.answerCallbackQuery('Ma\'lumot topilmadi');
+      return;
+    }
+
     if (!record) {
       await ctx.answerCallbackQuery('Ma\'lumot topilmadi');
       return;
     }
-    const message = this.insightsService.formatRichMeaning(record.name, record.meaning, record);
-    await this.safeEditOrReply(ctx, message, this.buildNameDetailKeyboard(record.slug));
+
+    // To'liq formatlangan ma'noni ko'rsatish
+    const message = this.insightsService.formatRichMeaning(
+      record.name,
+      meaning,
+      record
+    );
+
+    await this.safeEditOrReply(
+      ctx,
+      message,
+      this.buildNameDetailKeyboard(record.slug)
+    );
+
     await ctx.answerCallbackQuery();
   }
 
@@ -697,8 +718,6 @@ export class BotService {
     const keyboard = new InlineKeyboard()
       .text('👧 Qiz bolaga', 'personal:gender:girl')
       .text("👦 O'g'il bolaga", 'personal:gender:boy')
-      .row()
-      .text('🤍 Aniqlanmagan', 'personal:gender:all')
       .row()
       .text('🏠 Menyu', 'main');
 

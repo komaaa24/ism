@@ -532,7 +532,7 @@ export class BotService {
       return;
     }
 
-    // Ma'lumot bor - ko'rsatish
+    // Ma'lumot bor - YANGI XABAR yuborish (eski menyuni saqlab qolish)
     const displayName = record?.name || (slug.charAt(0).toUpperCase() + slug.slice(1));
     const message = this.insightsService.formatRichMeaning(
       displayName,
@@ -540,11 +540,10 @@ export class BotService {
       record
     );
 
-    await this.safeEditOrReply(
-      ctx,
-      message,
-      this.buildNameDetailKeyboard(slug)
-    );
+    await ctx.reply(message, {
+      parse_mode: 'HTML',
+      reply_markup: this.buildNameDetailKeyboard(slug),
+    });
 
     await ctx.answerCallbackQuery();
   }

@@ -12,11 +12,9 @@ import { AdminService } from './services/admin.service';
 import { UserEntity } from '../../shared/database/entities/user.entity';
 import { PlanEntity } from '../../shared/database/entities/plan.entity';
 import { TargetGender } from '../../shared/database/entities/user-persona-profile.entity';
-import { ActivityType } from '../../shared/database/entities';
 import { getClickRedirectLink } from '../../shared/generators/click-redirect-link.generator';
 import { generatePaymeLink } from '../../shared/generators/payme-link.generator';
 import { generateClickOnetimeLink } from '../../shared/generators/click-onetime-link.generator';
-import { ActivityTrackerService } from './services/activity-tracker.service';
 
 type FlowName = 'personalization' | 'quiz';
 
@@ -54,7 +52,6 @@ export class BotService {
     private readonly favoritesService: UserFavoritesService,
     private readonly personaService: UserPersonaService,
     private readonly adminService: AdminService,
-    private readonly activityTracker: ActivityTrackerService,
   ) {
     this.quizFlow = this.insightsService.getQuizFlow();
     this.registerHandlers();
@@ -68,10 +65,6 @@ export class BotService {
     this.bot.command('start', (ctx) => this.handleStart(ctx));
     this.bot.command('admin', (ctx) => this.handleAdmin(ctx));
     this.bot.command('stats', (ctx) => this.adminService.handleAdminCommand(ctx, 'stats'));
-    this.bot.command('activity', (ctx) => this.adminService.handleAdminCommand(ctx, 'activity'));
-    this.bot.command('funnel', (ctx) => this.adminService.handleAdminCommand(ctx, 'funnel'));
-    this.bot.command('users_active', (ctx) => this.adminService.handleAdminCommand(ctx, 'users_active'));
-    this.bot.command('daily', (ctx) => this.adminService.handleAdminCommand(ctx, 'daily'));
     this.bot.command('grant', (ctx) => this.adminService.handleAdminCommand(ctx, 'grant'));
     this.bot.command('revoke', (ctx) => this.adminService.handleAdminCommand(ctx, 'revoke'));
     this.bot.command('find', (ctx) => this.adminService.handleAdminCommand(ctx, 'find'));
@@ -82,16 +75,6 @@ export class BotService {
 
   private async handleStart(ctx: BotContext): Promise<void> {
     await this.createUserIfNeeded(ctx);
-
-    // Track /start command
-    if (ctx.from?.id) {
-      await this.activityTracker.trackActivity(
-        ctx.from.id,
-        ActivityType.START_COMMAND,
-        { username: ctx.from.username, firstName: ctx.from.first_name }
-      );
-    }
-
     ctx.session.mainMenuMessageId = undefined;
     ctx.session.flow = undefined;
     ctx.session.quizAnswers = undefined;
@@ -128,7 +111,7 @@ export class BotService {
       (hasAccess
         ? `✅ <b>Status:</b> VIP foydalanuvchi\n♾️ Barcha imkoniyatlar ochiq!\n\n`
         : `💡 <b>Status:</b> Oddiy foydalanuvchi\n💳 Bir martalik to'lov - 1,000 so'm\n♾️ Umrbod premium!\n\n`) +
-      `📱 Pastdagi tugmalardan birini bosing yoki ismni yozing! `;
+      `📱 Pastdagi tugmalardan birini bosing yoki ismni yozing! 🚀`;
 
     // 🎹 Professional Reply Keyboard
     const keyboard = new Keyboard()
@@ -199,12 +182,6 @@ export class BotService {
         break;
       case 'trend':
         await this.handleTrendCallbacks(ctx, parts);
-        break;
-      case 'fav':
-        await this.handleFavoriteCallbacks(ctx, parts);
-        break;
-      case 'admin':
-        await this.adminService.handleAdminCallback(ctx, parts[0] || 'panel');
         break;
       case 'main':
         await this.handleStart(ctx);
@@ -358,15 +335,9 @@ export class BotService {
     // Handle reply keyboard button presses
     switch (text) {
       case '🔍 Ism Ma\'nosi':
-        if (ctx.from?.id) {
-          await this.activityTracker.trackActivity(ctx.from.id, ActivityType.NAME_MEANING_CLICK);
-        }
         await this.promptForName(ctx);
         return;
       case '🎯 Shaxsiy Tavsiya':
-        if (ctx.from?.id) {
-          await this.activityTracker.trackActivity(ctx.from.id, ActivityType.PERSONAL_TAVSIYA_CLICK);
-        }
         // Check premium access
         if (!(await this.ensurePaidAccess(ctx))) {
           return;
@@ -374,9 +345,6 @@ export class BotService {
         await this.startPersonalizationFlow(ctx);
         return;
       case '📊 Trendlar':
-        if (ctx.from?.id) {
-          await this.activityTracker.trackActivity(ctx.from.id, ActivityType.TRENDS_CLICK);
-        }
         // Check premium access
         if (!(await this.ensurePaidAccess(ctx))) {
           return;
@@ -384,9 +352,6 @@ export class BotService {
         await this.showTrendMenu(ctx);
         return;
       case '⭐ Sevimlilar':
-        if (ctx.from?.id) {
-          await this.activityTracker.trackActivity(ctx.from.id, ActivityType.FAVORITES_CLICK);
-        }
         await this.showFavorites(ctx);
         return;
       case '💳 Premium Obuna':
@@ -401,10 +366,6 @@ export class BotService {
     await this.createUserIfNeeded(ctx);
 
     if (this.nameMeaningService.isValidName(text)) {
-      // Track name search
-      if (ctx.from?.id) {
-        await this.activityTracker.trackActivity(ctx.from.id, ActivityType.NAME_SEARCHED, { name: text });
-      }
       await this.processNameMeaning(ctx, text);
     } else {
       await this.showNameInputHelp(ctx, text);
@@ -557,35 +518,9 @@ export class BotService {
       return true;
     }
 
-    if (!user) {
-      await ctx.reply('/start buyrug\'ini yuboring');
-      return false;
-    }
-
-    const plan = await this.planRepository.findOne({ where: { name: 'Basic' } });
-    if (!plan) {
-      await ctx.reply('Reja topilmadi');
-      return false;
-    }
-
-    const amount = Number(plan.price);
-
-    // Generate secure payment links with tokens
-    const paymeLink = generatePaymeLink({
-      amount,
-      planId: plan.id,
-      userId: user.id,
-    });
-
-    const clickLink = getClickRedirectLink({
-      amount,
-      planId: plan.id,
-      userId: user.id,
-    });
-
     const keyboard = new InlineKeyboard()
-      .url('💳 Payme', paymeLink)
-      .url('💳 Click', clickLink)
+      .text('� Payme', 'onetime|payme')
+      .text('🟢 Click', 'onetime|click')
       .row()
       .text('🏠 Menyu', 'main');
 
@@ -603,8 +538,8 @@ export class BotService {
 
     const message =
       introMessage +
-      "🌟 <b>Premium:</b> 1 000 so'm\n" +
-      "♾️ <b>Muddati:</b> Butun umrga obuna bo'lasiz\n\n" +
+      "� <b>Premium:</b> 1 000 so'm\n" +
+      "♾️ <b>Muddati:</b> Butun umrga obuna bo'ling\n\n" +
       "Quyidagi to'lov usulini tanlang:";
 
     await ctx.reply(message, { reply_markup: keyboard, parse_mode: 'HTML' });
@@ -682,14 +617,14 @@ export class BotService {
   }
 
   private ensurePersonalizationSession(ctx: BotContext): FlowState {
-    if (!ctx.session.flow || (ctx.session.flow as unknown as FlowState).name !== 'personalization') {
+    if (!ctx.session.flow || (ctx.session.flow as FlowState).name !== 'personalization') {
       ctx.session.flow = {
         name: 'personalization',
         step: 1,
         payload: { focusValues: [] },
       };
     }
-    return ctx.session.flow as unknown as FlowState;
+    return ctx.session.flow as FlowState;
   }
 
   private async startPersonalizationFlow(ctx: BotContext): Promise<void> {
@@ -719,7 +654,7 @@ export class BotService {
   }
 
   private async handlePersonalizationMessage(ctx: BotContext, message: string): Promise<boolean> {
-    const flow = ctx.session.flow as unknown as FlowState | undefined;
+    const flow = ctx.session.flow as FlowState | undefined;
     if (!flow || flow.name !== 'personalization') {
       return false;
     }
@@ -773,7 +708,7 @@ export class BotService {
   }
 
   private async finalizePersonalization(ctx: BotContext): Promise<void> {
-    const flow = ctx.session.flow as unknown as FlowState | undefined;
+    const flow = ctx.session.flow as FlowState | undefined;
     if (!flow || flow.name !== 'personalization') {
       return;
     }
@@ -893,7 +828,7 @@ export class BotService {
   }
 
   private async processQuizAnswer(ctx: BotContext, questionId: string, value: string): Promise<void> {
-    const flow = ctx.session.flow as unknown as FlowState | undefined;
+    const flow = ctx.session.flow as FlowState | undefined;
     if (!flow || flow.name !== 'quiz') {
       await ctx.answerCallbackQuery();
       return;
@@ -1066,51 +1001,22 @@ export class BotService {
   }
 
   private async showOnetimePayment(ctx: BotContext): Promise<void> {
-    const telegramId = ctx.from?.id;
-    if (!telegramId) {
-      await ctx.reply('Foydalanuvchi aniqlanmadi');
-      return;
-    }
-
-    // Track payment screen opened
-    await this.activityTracker.trackActivity(telegramId, ActivityType.PAYMENT_SCREEN_OPENED);
-
-    const user = await this.userRepository.findOne({ where: { telegramId } });
-    if (!user) {
-      await ctx.reply('/start buyrug\'ini yuboring');
-      return;
-    }
-
     const plan = await this.planRepository.findOne({ where: { name: 'Basic' } });
     if (!plan) {
-      await ctx.reply("Reja topilmadi");
+      await ctx.answerCallbackQuery("Reja topilmadi");
       return;
     }
 
-    const amount = Number(plan.price);
-
-    // Generate secure payment links with tokens
-    const paymeLink = generatePaymeLink({
-      amount,
-      planId: plan.id,
-      userId: user.id,
-    });
-
-    const clickLink = getClickRedirectLink({
-      amount,
-      planId: plan.id,
-      userId: user.id,
-    });
-
     const keyboard = new InlineKeyboard()
-      .url('💳 Payme', paymeLink)
-      .url('💳 Click', clickLink)
+      .text('💙 Payme', 'onetime|payme')
+      .text('🟢 Click', 'onetime|click')
       .row()
       .text('🏠 Menyu', 'main');
 
-    await ctx.reply(
-      "🌟 Premium: 1 000 so'm\n♾️ Muddati: Umrbod\n\nQuyidagi to'lov usulini tanlang:",
-      { reply_markup: keyboard },
+    await this.safeEditOrReply(
+      ctx,
+      "💰 Premium: 1 000 so'm\n♾️ Muddati: Umrbod\n\nQuyidagi to'lov usulini tanlang:",
+      keyboard,
     );
   }
 
@@ -1120,11 +1026,6 @@ export class BotService {
       await ctx.answerCallbackQuery('Foydalanuvchi aniqlanmadi');
       return;
     }
-
-    // Track provider click
-    const activityType = provider === 'click' ? ActivityType.CLICK_CLICKED : ActivityType.PAYME_CLICKED;
-    await this.activityTracker.trackActivity(telegramId, activityType);
-
     const user = await this.userRepository.findOne({ where: { telegramId } });
     if (!user) {
       await ctx.answerCallbackQuery('/start yuboring');
@@ -1207,30 +1108,23 @@ export class BotService {
     user.subscriptionEnd = end;
     await this.userRepository.save(user);
 
-    // Track successful payment
-    if (user.telegramId) {
-      await this.activityTracker.trackActivity(
-        user.telegramId,
-        ActivityType.PAYMENT_SUCCESS,
-        { planId, amount: plan?.price, provider: selectedService },
-        user.id
-      );
-    }
-
     if (!user.telegramId) {
       return;
     }
 
-    const message =
-      '🎉 <b>Tabriklaymiz!</b>\n\n' +
-      "✅ To'lov muvaffaqiyatli amalga oshirildi.\n\n" +
-      '♾️ Siz butun umrlik obunaga ega bo\'ldingiz!\n\n' +
-      '🙏 Rahmat!';
+    const summaryLines = [
+      '🎉 <b>Tabriklaymiz!</b>',
+      '',
+      "✅ To'lov muvaffaqiyatli amalga oshirildi.",
+      selectedService ? `🧾 Xizmat: ${selectedService}` : undefined,
+      '',
+      '🌟 Endi barcha premium funksiyalar ochiq!',
+    ].filter(Boolean);
 
-    await this.bot.api.sendMessage(user.telegramId, message, {
+    await this.bot.api.sendMessage(user.telegramId, summaryLines.join('\n'), {
       parse_mode: 'HTML',
       reply_markup: {
-        inline_keyboard: [[{ text: '🏠 Bosh menyu', callback_data: 'main' }]],
+        inline_keyboard: [[{ text: '🔮 Premium menyuni ochish', callback_data: 'main' }]],
       },
     });
   }

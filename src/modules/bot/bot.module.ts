@@ -8,6 +8,7 @@ import {
   UserFavoriteNameEntity,
   UserPersonaProfileEntity,
   TransactionEntity,
+  ActivityLogEntity,
 } from '../../shared/database/entities';
 import { NameMeaningService } from './services/name-meaning.service';
 import { BotCoreService } from './services/bot-core.service';
@@ -16,6 +17,7 @@ import { UserFavoritesService } from './services/user-favorites.service';
 import { UserPersonaService } from './services/user-persona.service';
 import { AdminService } from './services/admin.service';
 import { NameGeneratorApiService } from './services/name-generator-api.service';
+import { ActivityTrackerService } from './services/activity-tracker.service';
 
 @Module({
   imports: [
@@ -25,6 +27,7 @@ import { NameGeneratorApiService } from './services/name-generator-api.service';
       UserFavoriteNameEntity,
       UserPersonaProfileEntity,
       TransactionEntity,
+      ActivityLogEntity,
     ]),
     HttpModule,
   ],
@@ -37,6 +40,7 @@ import { NameGeneratorApiService } from './services/name-generator-api.service';
     UserPersonaService,
     AdminService,
     NameGeneratorApiService,
+    ActivityTrackerService,
   ],
   exports: [BotService],
 })

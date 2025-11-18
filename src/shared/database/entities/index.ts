@@ -17,3 +17,4 @@ export { UserSubscriptionEntity } from './user-subscription.entity';
 export { UserPaymentEntity } from './user-payment.entity';
 export { UserFavoriteNameEntity } from './user-favorite-name.entity';
 export { UserPersonaProfileEntity } from './user-persona-profile.entity';
+export { ActivityLogEntity, ActivityType } from './activity-log.entity';

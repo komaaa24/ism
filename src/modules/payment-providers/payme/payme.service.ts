@@ -642,16 +642,10 @@ export class PaymeService {
 
         // Bot orqali foydalanuvchiga xabar berish
         try {
-          const bot = this.botService.getBot();
-          await bot.api.sendMessage(
-            user.telegramId,
-            `🎉 <b>Tabriklaymiz!</b>\n\n` +
-            `✅ Payme orqali to'lov muvaffaqiyatli amalga oshirildi!\n` +
-            `💰 Summa: ${transaction.amount / 100} so'm\n\n` +
-            `🌟 <b>Endi siz VIP foydalanuvchisiz!</b>\n` +
-            `♾️ Barcha ismlar manosi umrbod ochiq!\n\n` +
-            `Botdan bemalol foydalanishingiz mumkin! 🚀`,
-            { parse_mode: 'HTML' },
+          await this.botService.handleSubscriptionSuccess(
+            user.id,
+            plan.id,
+            36500, // 100 years in days = lifetime
           );
         } catch (notificationError) {
           logger.error(

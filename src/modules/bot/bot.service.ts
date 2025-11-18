@@ -133,11 +133,9 @@ export class BotService {
       `📱 Pastdagi tugmalardan birini bosing yoki ismni yozing! `;
 
     // 🎹 Professional Reply Keyboard
-    const keyboard = new Keyboard()
-      .text('🔍 Ism Ma\'nosi').text('🎯 Shaxsiy Tavsiya')
-      .row()
-      .text('📊 Trendlar').text('⭐ Sevimlilar')
-      .row();
+    const keyboard = new Keyboard();
+    keyboard.text('🔍 Ism Ma\'nosi').text('🎯 Shaxsiy Tavsiya').row();
+    // keyboard.text('📊 Trendlar').text('⭐ Sevimlilar').row(); // Temporarily hidden
 
     if (!hasAccess) {
       keyboard.text('💳 Premium Obuna');
@@ -622,7 +620,7 @@ export class BotService {
     }
 
     const introMessage = displayName
-      ? `🔒 <b>${displayName}</b> ismining ma'nosini bilish uchun premium sotib oling.\n\n`
+      ? `🔒 <b>${displayName}</b> ismini ma'nosini bilish uchun premium sotib oling.\n\n`
       : "🔒 Ushbu bo'limdan foydalanish uchun premium talab qilinadi.\n\n";
 
     const message =
@@ -1238,15 +1236,7 @@ export class BotService {
       await this.bot.api.sendMessage(telegramId, message, {
         parse_mode: 'HTML',
         reply_markup: {
-          inline_keyboard: [
-            [
-              {
-                text: '📈 Trend',
-                callback_data: `name:trend:${record?.slug ?? requestedName.toLowerCase()}`,
-              },
-              { text: '🏠 Menyu', callback_data: 'main' },
-            ],
-          ],
+          inline_keyboard: [[{ text: '🏠 Menyu', callback_data: 'main' }]],
         },
       });
     } catch (err) {

@@ -17,7 +17,7 @@ export function buildPaymeProviderUrl(
   const merchantId = config.PAYME_MERCHANT_ID;
   const amountAsNumber = parseFloat(params.amount.toString());
   const amountInTiyns = Math.round(amountAsNumber * 100);
-  const returnUrl = 'https://t.me/gbclilBot';
+  const returnUrl = 'https://t.me/n17kamolBot';
 
   logger.info('🔗 Payme link generation', {
     originalAmount: params.amount,

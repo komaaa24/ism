@@ -1,3 +1,4 @@
+import { createHash } from 'crypto';
 import { config } from '../config';
 
 const RETURN_URL =
@@ -19,9 +20,9 @@ export function generateClickOnetimeLink(
   options?: ClickLinkOptions,
 ): string {
   const normalizedAmount = normalizeAmount(amount);
-  const sanitizedUserId = sanitizeParam(userId);
-  const sanitizedPlanId = sanitizeParam(planId);
-  const planCode = sanitizeParam(options?.planCode ?? planId);
+  const sanitizedUserId = normalizeParam(userId, 'usr');
+  const sanitizedPlanId = normalizeParam(planId, 'pln');
+  const planCode = normalizeParam(options?.planCode ?? planId, 'plc');
 
   const paymentUrl = new URL('https://my.click.uz/services/pay');
   paymentUrl.searchParams.set('service_id', config.CLICK_SERVICE_ID);
@@ -44,11 +45,17 @@ function normalizeAmount(amount: number): number {
   return parsed;
 }
 
-function sanitizeParam(value?: string): string {
-  if (!value) {
-    return '';
+function normalizeParam(value: string | undefined, prefix: string): string {
+  const raw = value?.replace(/[^a-zA-Z0-9]/g, '') ?? '';
+  const base = raw || prefix;
+  if (base.length === 24) {
+    return base;
   }
 
-  const cleaned = value.replace(/[^a-zA-Z0-9]/g, '');
-  return cleaned || value;
+  if (base.length > 24) {
+    return base.slice(0, 24);
+  }
+
+  const hash = createHash('md5').update(base).digest('hex');
+  return (base + hash).slice(0, 24);
 }

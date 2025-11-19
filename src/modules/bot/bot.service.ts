@@ -596,7 +596,6 @@ export class BotService {
 
     const clickLink = generateClickOnetimeLink(user.id, plan.id, amount, {
       planCode: plan.selectedName ?? plan.name ?? plan.id,
-      telegramId: user.telegramId,
     });
 
     const keyboard = new InlineKeyboard()
@@ -1117,7 +1116,6 @@ export class BotService {
     if (provider === 'click') {
       paymentLink = generateClickOnetimeLink(user.id, plan.id, amount, {
         planCode: plan.selectedName ?? plan.name ?? plan.id,
-        telegramId: user.telegramId,
       });
     } else {
       // Payme

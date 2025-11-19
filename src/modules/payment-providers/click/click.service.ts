@@ -114,11 +114,11 @@ export class ClickService {
 
     // Click integration: transaction_param = userId, additional_param3 = planId
     let userId =
-      expandShortUuid(clickReqBody.additional_param1 || clickReqBody.param1) ||
-      context.userId ||
+      expandShortUuid(clickReqBody.transaction_param || merchantTransId) ||
       merchantTransId;
     let planId =
-      expandShortUuid(clickReqBody.additional_param2 || clickReqBody.param2) ||
+      expandShortUuid(clickReqBody.additional_param3) ||
+      clickReqBody.additional_param3 ||
       context.planId;
 
     // additional_param3 orqali planId olish

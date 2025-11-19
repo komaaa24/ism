@@ -80,19 +80,12 @@ export class ClickOnetimeService {
     }
 
     const normalizedAmount = this.normalizeClickAmount(amount);
-    const user = await this.userRepository.findOne({
-      where: { id: userId },
-    });
-    const plan = await this.planRepository.findOne({
-      where: { id: planId },
-    });
     const paymentLink = generateClickOnetimeLink(
       userId,
       planId,
       normalizedAmount,
       {
-        telegramId: user?.telegramId,
-        planCode: plan?.selectedName ?? plan?.name ?? planId,
+        planCode: planId,
       },
     );
 
@@ -193,12 +186,10 @@ export class ClickOnetimeService {
       );
 
       const userId =
-        expandShortUuid(clickReqBody.additional_param1 || clickReqBody.param1) ||
-        merchant_trans_id.split('.')[0] ||
+        expandShortUuid(clickReqBody.transaction_param || merchant_trans_id) ||
         merchant_trans_id;
       const planId =
-        expandShortUuid(clickReqBody.additional_param2 || clickReqBody.param2) ||
-        merchant_trans_id.split('.')[1] ||
+        expandShortUuid(clickReqBody.additional_param3) ||
         clickReqBody.additional_param3 ||
         param2;
 

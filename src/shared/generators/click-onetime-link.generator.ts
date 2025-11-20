@@ -1,3 +1,4 @@
+import { Buffer } from 'buffer';
 import { config } from '../config';
 
 const RETURN_URL =
@@ -20,9 +21,7 @@ export function generateClickOnetimeLink(
 ): string {
   const normalizedAmount = normalizeAmount(amount);
   const planCode = (options?.planCode ?? planId).replace(/\s+/g, '').toLowerCase();
-  const merchantTransId = buildShortToken(userId);
-  const userToken = buildShortToken(userId);
-  const planToken = buildShortToken(planId);
+  const merchantTransId = buildOrderId();
 
   const paymentUrl = new URL('https://my.click.uz/services/pay');
   paymentUrl.searchParams.set('service_id', config.CLICK_SERVICE_ID);
@@ -32,8 +31,8 @@ export function generateClickOnetimeLink(
   }
   paymentUrl.searchParams.set('amount', normalizedAmount.toString());
   paymentUrl.searchParams.set('transaction_param', merchantTransId);
-  paymentUrl.searchParams.set('additional_param1', userToken);
-  paymentUrl.searchParams.set('additional_param2', planToken);
+  paymentUrl.searchParams.set('additional_param1', userId);
+  paymentUrl.searchParams.set('additional_param2', planId);
   paymentUrl.searchParams.set('additional_param3', planId);
   paymentUrl.searchParams.set('additional_param4', planCode);
   paymentUrl.searchParams.set('return_url', RETURN_URL);
@@ -50,11 +49,8 @@ function normalizeAmount(amount: number): number {
   return parsed;
 }
 
-function buildShortToken(value: string): string {
-  return Buffer.from(value)
-    .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/g, '')
-    .slice(0, 24);
+function buildOrderId(): string {
+  const seed = `${Date.now()}-${Math.random()}`;
+  const base = Buffer.from(seed).toString('base64').replace(/[^a-zA-Z0-9]/g, '');
+  return base.slice(0, 24).padEnd(24, '0');
 }

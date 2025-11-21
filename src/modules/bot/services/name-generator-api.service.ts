@@ -60,7 +60,6 @@ export class NameGeneratorApiService {
     constructor(private readonly httpService: HttpService) { }
 
     /**
-     * 🧬 Senior darajadagi yangi algoritm
      *  - Faqat real ismlar poolidan foydalanadi
      *  - Har bir nom ota-onadan olingan harflar bo'yicha ball oladi
      *  - API ma'nosi tasdiqlangan nomlargina qaytariladi

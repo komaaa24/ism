@@ -1,7 +1,7 @@
 import { config } from '../config';
 
 const RETURN_URL =
-  process.env.BOT_URL?.trim() || 'https://t.me/n17kamolBot';
+  process.env.BOT_URL?.trim() || 'https://t.me/ismlarimizmanolari_bot';
 
 /**
  * Click bir martalik to'lov linkini yaratish.

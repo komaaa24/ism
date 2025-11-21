@@ -6,7 +6,7 @@ export type ClickRedirectParams = {
   userId: string;
 };
 const CLICK_URL = `https://my.click.uz`;
-const BOT_URL = 'https://t.me/n17kamolBot';
+const BOT_URL = 'https://t.me/ismlarimizmanolari_bot';
 
 export function buildClickProviderUrl(params: ClickRedirectParams): string {
   const serviceId = config.CLICK_SERVICE_ID;

@@ -477,7 +477,6 @@ export class BotService {
 
   private buildNameDetailKeyboard(slug: string): InlineKeyboard {
     return new InlineKeyboard()
-      .text('📈 Trend', `name:trend:${slug}`)
       .text('🏠 Menyu', 'main');
   }
 

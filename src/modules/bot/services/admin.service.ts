@@ -103,7 +103,7 @@ export class AdminService {
             '/users_active - Eng faol foydalanuvchilar\n' +
             '/daily - Kunlik statistika (7 kun)\n\n' +
             '<b>👥 Boshqaruv:</b>\n' +
-            '/grant <telegram_id> - Umrbod obuna berish\n' +
+            '/grant <telegram_id> - 10 yillik obuna berish\n' +
             '/find <telegram_id> - Foydalanuvchini topish',
             { parse_mode: 'HTML' }
         );
@@ -538,7 +538,7 @@ export class AdminService {
             }
 
             const subscriptionEndDate = new Date();
-            subscriptionEndDate.setFullYear(subscriptionEndDate.getFullYear() + 100); // 100 years
+            subscriptionEndDate.setFullYear(subscriptionEndDate.getFullYear() + 10);
 
             await this.userRepository.update(
                 { id: user.id },
@@ -558,7 +558,7 @@ export class AdminService {
                 `✅ <b>Muvaffaqiyatli!</b>\n\n` +
                 `Foydalanuvchi: ${user.firstName || 'Unknown'}\n` +
                 `Telegram ID: ${user.telegramId}\n` +
-                `Status: <b>VIP (Umrbod)</b> ♾️`,
+                `Status: <b>VIP (10 yillik)</b> ♾️`,
                 { parse_mode: 'HTML' }
             );
 

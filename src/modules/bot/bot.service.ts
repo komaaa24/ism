@@ -558,6 +558,7 @@ export class BotService {
     }
 
     const amount = 77777;
+    const formattedAmount = '77 777';
     const formattedAmount = "77 777 so'm";
 
     // Generate secure payment links with tokens
@@ -598,7 +599,7 @@ export class BotService {
       introMessage +
       `🌟 <b>Premium:</b> ${formattedAmount} bir marta to'lov qilasiz \n` +
       "♾️ <b>Muddati:</b> 10 yil muddatga obuna bo'lasiz\n\n" +
-     "Quyidagi to'lov usulini tanlang:";
+      "Quyidagi to'lov usulini tanlang:";
 
     await ctx.reply(message, { reply_markup: keyboard, parse_mode: 'HTML' });
     return false;
@@ -1014,7 +1015,9 @@ export class BotService {
       return;
     }
 
+
     const amount = 77777;
+    const formattedAmount = amount.toLocaleString('ru-RU');
 
     const paymeLink = generatePaymeLink({
       amount,

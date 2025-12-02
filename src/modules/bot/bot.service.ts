@@ -428,7 +428,7 @@ export class BotService {
       .row()
       .text('📈 Trendlar', 'menu:trends')
       .row()
-      .text('📜 Oferta', 'menu:oferta')
+      .url('📜 Oferta', 'https://telegra.ph/Ismlar-manosi-11-24')
       .row()
       .switchInline('🔍 Inline qidiruv', '');
 
@@ -456,7 +456,7 @@ export class BotService {
     const displayedAmount = '9 999 so\'m';
     message += hasAccess
       ? '✅ Premium foydalanuvchisiz — barcha bo\'limlar ochiq.\n\n'
-      : `💳 Bir martalik to'lov qiling va umrbod premiumga ega bo'ling (${displayedAmount}).\n\n`;
+      : `💳 Bir martalik to'lov qiling va 1 yillik premiumga ega bo'ling (${displayedAmount}).\n\n`;
     message += "Quyidagi bo'limlardan birini tanlang yoki ismni yozing:";
 
     if (initial) {
@@ -596,10 +596,10 @@ export class BotService {
     });
 
     const keyboard = new InlineKeyboard()
-      .text('💳 Payme', 'onetime|payme')
-      .text('💳 Click', 'onetime|click')
+      .url('💳 Payme', paymeLink)
+      .url('💳 Click', clickLink)
       .row()
-      .text('📜 Oferta', 'menu:oferta')
+      .url('📜 Oferta', 'https://telegra.ph/Ismlar-manosi-11-24')
       .row()
       .text('🏠 Menyu', 'main');
 
@@ -1044,11 +1044,21 @@ export class BotService {
     const amount = Number(plan.price ?? 0) || 9999;
     const formattedAmount = amount.toLocaleString('ru-RU');
 
+    const paymeLink = generatePaymeLink({
+      amount,
+      planId: plan.id,
+      userId: user.id,
+    });
+
+    const clickLink = generateClickOnetimeLink(user.id, plan.id, amount, {
+      planCode: plan.selectedName ?? plan.name ?? plan.id,
+    });
+
     const keyboard = new InlineKeyboard()
-      .text('💳 Payme', 'onetime|payme')
-      .text('💳 Click', 'onetime|click')
+      .url('💳 Payme', paymeLink)
+      .url('💳 Click', clickLink)
       .row()
-      .text('📜 Oferta', 'menu:oferta')
+      .url('📜 Oferta', 'https://telegra.ph/Ismlar-manosi-11-24')
       .row()
       .text('🏠 Menyu', 'main');
 
@@ -1085,23 +1095,21 @@ export class BotService {
     const formattedAmount = amount.toLocaleString('ru-RU');
     const providerTitle = provider === 'click' ? 'Click' : 'Payme';
 
-    let paymentLink: string;
-
-    if (provider === 'click') {
-      paymentLink = generateClickOnetimeLink(user.id, plan.id, amount, {
-        planCode: plan.selectedName ?? plan.name ?? plan.id,
-      });
-    } else {
-      // Payme
-      paymentLink = generatePaymeLink({
-        amount,
-        planId: plan.id,
-        userId: user.id,
-      });
-    }
+    const paymentLink =
+      provider === 'click'
+        ? generateClickOnetimeLink(user.id, plan.id, amount, {
+            planCode: plan.selectedName ?? plan.name ?? plan.id,
+          })
+        : generatePaymeLink({
+            amount,
+            planId: plan.id,
+            userId: user.id,
+          });
 
     const keyboard = new InlineKeyboard()
       .url("💳 To'lovga o'tish", paymentLink)
+      .row()
+      .url('📜 Oferta', 'https://telegra.ph/Ismlar-manosi-11-24')
       .row()
       .text('🏠 Menyu', 'main');
 

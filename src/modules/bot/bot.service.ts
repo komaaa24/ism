@@ -537,8 +537,18 @@ export class BotService {
 
     const { record, meaning, error } = await this.insightsService.getRichNameMeaning(name, telegramId, username);
 
+    // Get user access status for keyboard
+    let hasAccess = false;
+    if (telegramId) {
+      const user = await this.userRepository.findOne({ where: { telegramId } });
+      hasAccess = this.userHasActiveAccess(user);
+    }
+
     if (!meaning && error) {
-      await ctx.reply(`❌ ${error}`, { parse_mode: 'HTML' });
+      await ctx.reply(`❌ ${error}`, {
+        parse_mode: 'HTML',
+        reply_markup: this.getMainKeyboard(hasAccess)
+      });
       return;
     }
 
@@ -552,6 +562,19 @@ export class BotService {
   private buildNameDetailKeyboard(slug: string): InlineKeyboard {
     return new InlineKeyboard()
       .text('🏠 Menyu', 'main');
+  }
+
+  // Reply Keyboard generator - doim pastda turadi
+  private getMainKeyboard(hasAccess: boolean = false): Keyboard {
+    const keyboard = new Keyboard();
+    keyboard.text('🔍 Ism Ma\'nosi').text('🎯 Shaxsiy Tavsiya').row();
+
+    if (!hasAccess) {
+      keyboard.text('💳 Premium Obuna');
+    }
+
+    keyboard.resized().persistent();
+    return keyboard;
   }
 
   private async showNameDetail(ctx: BotContext, slug: string): Promise<void> {

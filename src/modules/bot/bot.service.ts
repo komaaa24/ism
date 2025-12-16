@@ -551,7 +551,8 @@ export class BotService {
 
   private buildNameDetailKeyboard(slug: string): InlineKeyboard {
     return new InlineKeyboard()
-      .text('🏠 Menyu', 'main');
+      .text('🏠 Menyu', 'main')
+      .text('🎯 Shaxsiy tavsiya', 'menu:personal');
   }
 
   // Reply Keyboard generator - doim pastda turadi

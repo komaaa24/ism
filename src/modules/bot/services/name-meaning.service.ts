@@ -37,9 +37,14 @@ export class NameMeaningService {
         const meaningText = response.data.trim();
 
         // API javobda faqat tire yoki bo'sh ma'no bo'lsa, topilmagan deb hisoblash
-        const cleanMeaning = meaningText.replace(/^Ma'nosi:\s*/i, '').replace(/\s*-\s*$/, '').trim();
+        // Format: "Ma'nosi: valibek -" yoki "Ma'nosi: -" bo'lsa, ma'lumot yo'q
+        const cleanMeaning = meaningText
+          .replace(/^Ma'nosi:\s*/i, '') // "Ma'nosi:" ni olib tashlash
+          .replace(new RegExp(`\\b${name.trim().toLowerCase()}\\b`, 'i'), '') // Ism nomini olib tashlash
+          .replace(/\s*-\s*$/, '') // Oxiridagi tire ni olib tashlash
+          .trim();
 
-        if (!cleanMeaning || cleanMeaning === '' || meaningText.includes('Ma\'nosi:  -') || meaningText.includes('Ma\'nosi: -')) {
+        if (!cleanMeaning || cleanMeaning === '') {
           // Ma'lumot topilmadi - saqlash
           await this.saveRequestedName(name, telegramId, username);
           return { error: "❌ Kechirasiz, bu ism haqida ma'lumot ma'lumotlar bazamizda yo'q.\n\n⏰ <b>Tez orada qo'shiladi!</b>\n\nSizning so'rovingiz admin paneliga yuborildi." };

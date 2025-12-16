@@ -9,7 +9,6 @@ import {
   OneToOne,
 } from 'typeorm';
 import { SubscriptionType } from './enums';
-import { UserFavoriteNameEntity } from './user-favorite-name.entity';
 
 @Entity('users')
 @Index(['telegramId', 'isActive'])
@@ -62,10 +61,10 @@ export class UserEntity {
   @Column({ type: 'varchar', nullable: true })
   activeInviteLink?: string;
 
-  @OneToMany(() => UserFavoriteNameEntity, (favorite) => favorite.user, {
+  @OneToMany('UserFavoriteNameEntity', (favorite: any) => favorite.user, {
     cascade: ['remove'],
   })
-  favorites?: UserFavoriteNameEntity[];
+  favorites?: any[];
 
   @OneToOne('UserPersonaProfileEntity', (persona: any) => persona.user, {
     cascade: ['remove'],

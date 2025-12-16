@@ -124,20 +124,10 @@ export class BotService {
         : `💳 Bir martalik to'lov - 9 999 so'm\n🌟 Bir marta to'lov qiling va 1 yillik obunaga ega bo'ling.\n\n`) +
       `📱 Pastdagi tugmalardan birini bosing yoki ismni yozing! `;
 
-    // 🎹 Professional Reply Keyboard
-    const keyboard = new Keyboard();
-    keyboard.text('🔍 Ism Ma\'nosi').text('🎯 Shaxsiy Tavsiya').row();
-    // keyboard.text('📊 Trendlar').text('⭐ Sevimlilar').row(); // Temporarily hidden
-
-    if (!hasAccess) {
-      keyboard.text('💳 Premium Obuna');
-    }
-
-    keyboard.resized();
-
+    // 🎹 Professional Reply Keyboard - use common method
     await ctx.reply(welcomeMessage, {
       parse_mode: 'HTML',
-      reply_markup: keyboard,
+      reply_markup: this.getMainKeyboard(hasAccess),
     });
   }
 

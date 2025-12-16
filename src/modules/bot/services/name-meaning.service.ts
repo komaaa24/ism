@@ -66,8 +66,8 @@ export class NameMeaningService {
   }
 
   isValidName(name: string): boolean {
-    // Check if name contains only letters and spaces, and is not empty
-    const nameRegex = /^[a-zA-ZА-Яа-яЁёўўҳҳғғқққ\s]+$/u;
+    // Check if name contains only letters, spaces, and apostrophes (for names like o'ktam, g'olib)
+    const nameRegex = /^[a-zA-ZА-Яа-яЁёўўҳҳғғқққ\s']+$/u;
     return (
       nameRegex.test(name.trim()) &&
       name.trim().length > 0 &&

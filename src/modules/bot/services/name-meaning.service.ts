@@ -34,7 +34,18 @@ export class NameMeaningService {
         typeof response.data === 'string' &&
         response.data.trim()
       ) {
-        return { meaning: response.data.trim() };
+        const meaningText = response.data.trim();
+
+        // API javobda faqat tire yoki bo'sh ma'no bo'lsa, topilmagan deb hisoblash
+        const cleanMeaning = meaningText.replace(/^Ma'nosi:\s*/i, '').replace(/\s*-\s*$/, '').trim();
+
+        if (!cleanMeaning || cleanMeaning === '' || meaningText.includes('Ma\'nosi:  -') || meaningText.includes('Ma\'nosi: -')) {
+          // Ma'lumot topilmadi - saqlash
+          await this.saveRequestedName(name, telegramId, username);
+          return { error: "❌ Kechirasiz, bu ism haqida ma'lumot ma'lumotlar bazamizda yo'q.\n\n⏰ <b>Tez orada qo'shiladi!</b>\n\nSizning so'rovingiz admin paneliga yuborildi." };
+        }
+
+        return { meaning: meaningText };
       } else {
         // Ma'lumot topilmadi - saqlash
         await this.saveRequestedName(name, telegramId, username);

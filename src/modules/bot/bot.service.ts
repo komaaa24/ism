@@ -562,7 +562,7 @@ export class BotService {
       const keyboard = this.buildNameDetailKeyboard(record?.slug ?? name.toLowerCase());
 
       await ctx.replyWithPhoto(new InputFile(imageBuffer, `${name}.png`), {
-        caption: `<b>${record?.name ?? name}</b>`,
+        caption: `📚 <b>Ismingiz Ma'nosiga rasm tayyor</b> 💫\n\n🔍 <b>Ismingiz:</b> ${record?.name ?? name}\n\n📑 <b>Manosi:</b> ${meaning}\n\n❤️ @ismlarimizmanolari_bot Botimizni Do'stlaringizga Ulashishni Unutmang !`,
         parse_mode: 'HTML',
         reply_markup: keyboard,
       });

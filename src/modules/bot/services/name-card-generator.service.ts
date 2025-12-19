@@ -130,11 +130,11 @@ export class NameCardGeneratorService {
         const centerX = this.WIDTH / 2;
         const startY = 480; // Oq qismda (50% dan keyin)
 
-        // "📖 Ma'nosi:" label
+        // "Ma'nosi:" label - emoji o'chirildi server uchun
         ctx.fillStyle = '#4B5563';
         ctx.font = 'bold 24px Arial, sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText("📖 Ma'nosi:", centerX, startY);
+        ctx.fillText("Ma'nosi:", centerX, startY);
 
         // Ma'no matni
         ctx.font = '24px Arial, sans-serif';

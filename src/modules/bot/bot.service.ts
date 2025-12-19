@@ -1588,19 +1588,17 @@ export class BotService {
       const keyboard = hasMore
         ? [
           [{ text: '⏭️ Keyingi 2ta ism', callback_data: 'next_personalized_names' }],
-          [{ text: '🎯 Barcha tavsiyalar', callback_data: 'menu:personal' }],
-          [{ text: '🏠 Menyu', callback_data: 'main' }],
+          [{ text: ' Menyu', callback_data: 'main' }],
         ]
         : [
-          [{ text: '🎯 Barcha tavsiyalar', callback_data: 'menu:personal' }],
-          [{ text: '🏠 Menyu', callback_data: 'main' }],
+          [{ text: ' Menyu', callback_data: 'main' }],
         ];
 
       await this.bot.api.sendMessage(
         telegramId,
         hasMore
           ? `Ko'proq ismlarni ko'rish uchun pastdagi tugmani bosing 👇`
-          : `Ko'proq ismlarni ko'rish uchun "🎯 Shaxsiy tavsiya" tugmasini bosing.`,
+          : `Barcha tavsiyalar ko'rsatildi!`,
         {
           reply_markup: { inline_keyboard: keyboard },
         }
@@ -1650,18 +1648,16 @@ export class BotService {
       const keyboard = hasMore
         ? [
           [{ text: '⏭️ Keyingi 2ta ism', callback_data: 'next_personalized_names' }],
-          [{ text: '🎯 Barcha tavsiyalar', callback_data: 'menu:personal' }],
-          [{ text: '🏠 Menyu', callback_data: 'main' }],
+          [{ text: ' Menyu', callback_data: 'main' }],
         ]
         : [
-          [{ text: '🎯 Barcha tavsiyalar', callback_data: 'menu:personal' }],
           [{ text: '🏠 Menyu', callback_data: 'main' }],
         ];
 
       await ctx.reply(
         hasMore
           ? `Ko'proq ismlarni ko'rish uchun pastdagi tugmani bosing 👇`
-          : `Barcha tavsiyalar ko'rsatildi! Ko'proq ismlar uchun "🎯 Shaxsiy tavsiya" tugmasini bosing.`,
+          : `Barcha tavsiyalar ko'rsatildi!`,
         {
           reply_markup: { inline_keyboard: keyboard },
         }

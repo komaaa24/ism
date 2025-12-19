@@ -1466,24 +1466,72 @@ export class BotService {
         return;
       }
 
-      // Get pending personalization data from bot memory (temporary solution)
-      // In production, you might want to store this in database
-      const sessionKey = `pending_personalization_${telegramId}`;
+      // Get user's persona profile from database
+      const profile = await this.personaService.getProfile(user.id);
 
-      // Since we can't access session directly here, we'll use a simpler approach
-      // The user will need to manually request results after payment
-      // For now, just send a reminder message
+      // If no profile or no parent names, skip
+      if (!profile || !profile.parentNames || profile.parentNames.length < 2) {
+        return;
+      }
+
+      // Generate personalized recommendations
+      const targetGender = profile.targetGender === 'boy' ? 'boy' : profile.targetGender === 'girl' ? 'girl' : 'all';
+      const focusValues = profile.focusValues || [];
+      const parentNames = profile.parentNames;
+
+      let suggestions: any[] = [];
+
+      if (parentNames && parentNames.length >= 2) {
+        try {
+          suggestions = await this.insightsService.buildApiGeneratedRecommendations(
+            parentNames[0],
+            parentNames[1],
+            targetGender,
+          );
+        } catch (error) {
+          const result = this.insightsService.buildPersonalizedRecommendations(
+            targetGender,
+            focusValues,
+            parentNames
+          );
+          suggestions = result.suggestions;
+        }
+      } else {
+        const result = this.insightsService.buildPersonalizedRecommendations(
+          targetGender,
+          focusValues,
+          parentNames
+        );
+        suggestions = result.suggestions;
+      }
+
+      if (!suggestions || suggestions.length === 0) {
+        return;
+      }
+
+      // Faqat birinchi 5ta ismni yuborish
+      const NAMES_TO_SHOW = 5;
+      const topNames = suggestions.slice(0, NAMES_TO_SHOW);
+
+      const lines = topNames.map((item, index) => {
+        const emoji = item.gender === 'girl' ? '👧' : '👦';
+        return `${index + 1}. ${emoji} <b>${item.name}</b> — ${item.meaning}`;
+      });
+
+      const parentInfo = `Ota: <b>${parentNames[0]}</b>, Ona: <b>${parentNames[1]}</b> asosida yaratilgan\n\n`;
 
       await this.bot.api.sendMessage(
         telegramId,
-        '🎯 <b>Shaxsiy tavsiyalarni ko\'rish tayyor!</b>\n\n' +
-        'Agar siz to\'lovdan oldin ota-ona ismlarini kiritgan bo\'lsangiz, ' +
-        'endi /start bosib, "🎯 Shaxsiy tavsiya" tugmasini bosing - ' +
-        'natijalar darhol ko\'rsatiladi!',
+        `� <b>Tabriklaymiz! Shaxsiy tavsiyalaringiz tayyor!</b>\n\n${parentInfo}${lines.join('\n')}\n\n` +
+        `📊 Jami ${suggestions.length} ta ism tavsiya qilingan.\n\n` +
+        `Ko'proq ismlarni ko'rish uchun "🎯 Shaxsiy tavsiya" tugmasini bosing.`,
         {
           parse_mode: 'HTML',
           reply_markup: {
-            inline_keyboard: [[{ text: '🎯 Shaxsiy tavsiya', callback_data: 'menu:personal' }]],
+            inline_keyboard: [
+              [{ text: '🎯 Barcha tavsiyalar', callback_data: 'menu:personal' }],
+              [{ text: '🏠 Menyu', callback_data: 'main' }],
+            ],
           },
         }
       );

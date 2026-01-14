@@ -218,9 +218,7 @@ export class BotService {
     switch (action) {
       case 'personal':
         // Har doim yangi personalizatsiya flow ni boshlaymiz, eski profil natijalarini qayta ishlatmaymiz
-        ctx.session.flow = undefined;
-        ctx.session.generatedNames = undefined;
-        ctx.session.currentPage = 0;
+        await this.resetPersonalizationState(ctx);
         await this.startPersonalizationFlow(ctx);
         await ctx.answerCallbackQuery();
         break;
@@ -390,6 +388,7 @@ export class BotService {
           await this.activityTracker.trackActivity(ctx.from.id, ActivityType.PERSONAL_TAVSIYA_CLICK);
         }
         // Personalizatsiya boshlash - bepul (natijani ko'rish uchun to'lov kerak)
+        await this.resetPersonalizationState(ctx);
         await this.startPersonalizationFlow(ctx);
         return;
       case '📊 Trendlar':
@@ -954,6 +953,36 @@ export class BotService {
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
     await this.showPersonalizationResults(ctx, targetGender, focusValues, parentNames, user);
+  }
+
+  /**
+   * Shaxsiy tavsiya flowini tozalaydi: session, cache va eski profil ma'lumotlari.
+   * Bu foydalanuvchi har safar yangi ma'lumot kiritishini ta'minlaydi.
+   */
+  private async resetPersonalizationState(ctx: BotContext): Promise<void> {
+    // Session dagi barcha personalization ma'lumotlarini tozalash
+    ctx.session.flow = undefined;
+    ctx.session.generatedNames = undefined;
+    ctx.session.currentPage = 0;
+    ctx.session.pendingPersonalization = undefined;
+
+    // Cache dagi eski generatsiya natijalarini o'chirish
+    if (ctx.from?.id) {
+      this.personalizationCache.delete(ctx.from.id);
+    }
+
+    // Premium foydalanuvchilar uchun bazadagi eski profil ma'lumotlarini ham tozalash
+    if (ctx.from?.id) {
+      const user = await this.userRepository.findOne({ where: { telegramId: ctx.from.id } });
+      if (user) {
+        await this.personaService.upsertProfile(user.id, {
+          targetGender: 'unknown',
+          parentNames: [],
+          focusValues: [],
+          personaType: 'reset',
+        });
+      }
+    }
   }
 
   private async showPersonalizationResults(
